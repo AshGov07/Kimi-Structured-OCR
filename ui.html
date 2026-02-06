@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner UI</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('/background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Provided Styles */
+        /* Liquid Glass Card */
+        .liquid-glass-card {
+            position: relative;
+            width: 500px;
+            height: auto;
+            min-height: 400px;
+            border-radius: 28px;
+            isolation: isolate;
+            box-shadow: 0px 0px 21px -8px rgba(233, 205, 205, 0.205);
+            transition: height 0.3s ease;
+        }
+
+
+        /* Tint and inner shadow layer */
+        .liquid-glass-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: 28px;
+            box-shadow: inset 0 0 14px -4px rgba(255, 255, 255, 0.7);
+            background-color: rgba(212, 22, 22, 0);
+            pointer-events: none;
+        }
+
+        /* Backdrop blur and distortion layer */
+        .liquid-glass-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: 28px;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            filter: url(#glass-distortion);
+            -webkit-filter: url(#glass-distortion);
+            isolation: isolate;
+            pointer-events: none;
+        }
+
+        /* Content styling */
+        .card-content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box;
+            /* Added to ensure padding doesn't affect width */
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            font-weight: 700;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-icon {
+            width: 24px;
+            height: 24px;
+            color: #3b82f6;
+        }
+
+        .card-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
+
+        .card-description {
+            font-size: 14px;
+            opacity: 0.7;
+            margin: 0 0 16px 0;
+        }
+
+        /* Form Elements */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            height: 80px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+        }
+
+        .glass-button {
+            width: 100%;
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .glass-button:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+
+        .glass-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 10px;
+            min-height: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 250px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .result-area.visible {
+            display: block;
+        }
+
+        .loading {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .card-tip {
+            font-size: 11px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 20px;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 100px;
+            margin-top: 10px;
+            border-radius: 8px;
+            display: none;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SVG Filter -->
+    <svg width="0" height="0" style="position: absolute;">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="2" seed="92" result="noise" />
+                <feGaussianBlur in="noise" stdDeviation="2" result="blurred" />
+                <feDisplacementMap in="SourceGraphic" in2="blurred" scale="55" xChannelSelector="R"
+                    yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Liquid Glass Card -->
+    <div class="liquid-glass-card">
+        <div class="card-content">
+            <div class="card-header">
+                <div class="header-title">
+                    <svg class="avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Scanner
+                </div>
+            </div>
+
+            <div class="card-body">
+                <p class="card-description">Upload a medical image or document to extract details.</p>
+
+                <div class="file-upload-wrapper">
+                    <input type="file" id="fileInput" accept="image/*">
+                    <span class="upload-text" id="uploadText">Click or Drag Image Here</span>
+                </div>
+
+                <img id="preview-image" alt="Preview">
+
+                <button class="glass-button" id="scanButton">
+                    <span>Extract Text</span>
+                </button>
+
+                <div id="resultArea" class="result-area">Waiting for input...</div>
+            </div>
+
+            <p class="card-tip">Powered by Ollama + Gemma3 (via FastAPI)</p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadText = document.getElementById('uploadText');
+        const previewImage = document.getElementById('preview-image');
+        const scanButton = document.getElementById('scanButton');
+        const resultArea = document.getElementById('resultArea');
+
+        fileInput.addEventListener('change', function (e) {
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                uploadText.textContent = file.name;
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        scanButton.addEventListener('click', async () => {
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // UI Loading state
+            scanButton.disabled = true;
+            const originalButtonContent = scanButton.innerHTML;
+            scanButton.innerHTML = '<div class="loading"></div> Processing...';
+            resultArea.classList.remove('visible');
+            resultArea.textContent = '';
+
+            try {
+                const response = await fetch('/ocr', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                resultArea.classList.add('visible');
+                // Check if the response is JSON object or has text field
+                if (typeof data === 'object') {
+                    resultArea.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    resultArea.textContent = data;
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultArea.classList.add('visible');
+                resultArea.textContent = 'Failed to process image. ' + error.message;
+            } finally {
+                scanButton.disabled = false;
+                scanButton.innerHTML = originalButtonContent;
+            }
+        });
+    </script>
+</body>
+
+</html>

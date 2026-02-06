@@ -48,11 +48,12 @@
 import json
 import re
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 import requests
 import base64
 from PIL import Image
 import io
+import os
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "kimi-k2.5:cloud"
@@ -76,6 +77,16 @@ def image_to_base64(image_bytes: bytes) -> str:
     img.save(buffer, format="PNG")
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+@app.get("/docs/ui", response_class=HTMLResponse)
+async def serve_ui():
+    file_path = os.path.join(os.path.dirname(__file__), "ui.html")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/background.png")
+async def background_image():
+    file_path = os.path.join(os.path.dirname(__file__), "Optical-Character-Recognition-.png")
+    return FileResponse(file_path)
 
 @app.post("/ocr")
 async def ocr_image(file: UploadFile = File(...)):
