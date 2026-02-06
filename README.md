@@ -1,6 +1,5 @@
 # 🧠 Kimi Structured OCR
 
-**Repository:** `ashgov07/kimi-structured-ocr`  
 **Author:** Ashwanth  
 **Version:** 1.1.0  
 **Stack:** FastAPI · Ollama · Vision LLM · Python · HTML/CSS  
